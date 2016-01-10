@@ -22,6 +22,11 @@ class KeyStats(object):
         for modifier in modifiers:
             self.keys[key][modifier] += 1
 
+    def keys_by_count(self):
+        return sorted(self.keys.keys(),
+                      key=lambda x: self.keys[x]['count'],
+                      reverse=True)
+
 
 def logkeys():
     parser = argparse.ArgumentParser(
@@ -34,6 +39,12 @@ def logkeys():
     with open(args.infile, 'rt') as infile, open(args.outfile, 'wt') as outfile:
         stats = _logkeys_analyze(infile)
         json.dump(stats.keys, outfile)
+
+    print("Keys in order of popularity:")
+    for key in stats.keys_by_count():
+        if key[0] in ('<', ' '):
+            continue  # Don't print out fixed keys
+        print("%s: %s" % (key, stats.keys[key]['count']))
 
 
 def _logkeys_analyze(infile):

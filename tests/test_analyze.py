@@ -3,11 +3,11 @@ import io
 import json
 import os
 import sys
-import tempfile
 import unittest
 
 from keyboardtools.analyze import logkeys, _logkeys_analyze
 from pkg_resources import resource_string
+from tempfile import TemporaryDirectory
 
 
 @contextlib.contextmanager
@@ -32,8 +32,8 @@ class TestLogkeysParse(unittest.TestCase):
             sys.argv = ['kbt-logkeys', 'foo']
             self.assertRaises(SystemExit, logkeys)
 
-    def test_file_output(self):
-        with suppress_output(), tempfile.TemporaryDirectory() as tempdir:
+    def test_command(self):
+        with suppress_output() as out, TemporaryDirectory() as tempdir:
             with open(os.path.join(tempdir, 'infile'), 'wb') as infile, \
                  open(os.path.join(tempdir, 'outfile'), 'wt') as outfile:
                     test_data = resource_string(__name__, 'logkeys.log')
@@ -43,6 +43,11 @@ class TestLogkeysParse(unittest.TestCase):
                     logkeys()
 
                     result = json.load(open(outfile.name, 'rt'))
+
+        val = out.getvalue()
+        self.assertIn('k: 9', val)
+        self.assertIn('f: 7', val)
+        self.assertIn('ö: 3', val)
 
         self.assertEqual(
             result['k'],
